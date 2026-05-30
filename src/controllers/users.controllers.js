@@ -34,13 +34,20 @@ export const getUsers = async (req, res) => {
             error: error.message
         });
     }
-
 }
 
 export const getUsersById = async (req, res) => {
     try {
         ///Agregamos la conexion a la base de datos
         const pool = await getConnection();
+
+        //Validamos que la conexión se haya establecido correctamente
+        if (!pool) {
+            return res.status(500).json({ 
+                status: false, 
+                message: "Error de conexión con la base de datos" 
+            });
+        }
 
         //Consulta query hacia la base de datos para obtener un usuario en espoecifico
         const result = await pool
@@ -76,6 +83,14 @@ export const createUser = async (req, res) => {
     try {      
         ///Agregamos la conexion a la base de datos
         const pool = await getConnection();
+
+        //Validamos que la conexión se haya establecido correctamente
+        if (!pool) {
+            return res.status(500).json({ 
+                status: false, 
+                message: "Error de conexión con la base de datos" 
+            });
+        }
 
         //Consulta query hacia la base de datos para obtener un usuario en espoecifico
         const result = await pool
@@ -114,6 +129,14 @@ export const updateUser = async (req, res) => {
         ///Agregamos la conexion a la base de datos
         const pool = await getConnection();
 
+        //Validamos que la conexión se haya establecido correctamente
+        if (!pool) {
+            return res.status(500).json({ 
+                status: false, 
+                message: "Error de conexión con la base de datos" 
+            });
+        }
+
         //Consulta query hacia la base de datos para obtener un usuario en espoecifico
         const result = await pool
             .request()
@@ -151,6 +174,14 @@ export const deleteUser = async (req, res) => {
     try {
         ///Agregamos la conexion a la base de datos
         const pool = await getConnection();
+
+        //Validamos que la conexión se haya establecido correctamente
+        if (!pool) {
+            return res.status(500).json({ 
+                status: false, 
+                message: "Error de conexión con la base de datos" 
+            });
+        }
 
         //Consulta query hacia la base de datos para obtener un usuario en espoecifico
         const result = await pool
