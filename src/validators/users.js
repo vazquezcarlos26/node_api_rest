@@ -36,7 +36,42 @@ export const validateCreateUser = [
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(400).json({
-                ok: false,
+                status: false,
+                errors: errors.array().map(err => ({
+                    campo: err.path,
+                    mensaje: err.msg
+                }))
+            });
+        }
+        next();
+    }
+]
+
+export const validateUpdateUser = [
+    body('name')
+    .notEmpty().withMessage('El nombre es obligatorio')
+    .isLength({ min: 2}).withMessage('El nombre debe tener al menos 2 caracteres'),
+
+    body('surnames')
+    .notEmpty().withMessage('Los apellidos son obligatorios')
+    .isLength({ min: 2}).withMessage('Los apellidos deben tener al menos 2 caracteres'),
+
+    // 🛑 Bloqueo total si intentan mandar el correo
+    body('email')
+    .custom((value,{ req }) => {
+        //validamos si el campo email existe en el body, si existe lanzamos un error personalizado
+        if(req.body.email !== undefined){
+            throw new Error('No se permite actualizar el correo electrónico');
+        }
+        return true;
+    }),
+
+    // Middleware para manejar los errores de validación y limpiar el body
+    (req, res, next) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({
+                status: false,
                 errors: errors.array().map(err => ({
                     campo: err.path,
                     mensaje: err.msg

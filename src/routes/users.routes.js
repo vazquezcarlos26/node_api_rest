@@ -6,7 +6,10 @@ import {
     getUsersById, 
     updateUser
 } from '../controllers/users.controllers.js';
-import { validateCreateUser } from '../validators/users.js';
+import { 
+    validateCreateUser, 
+    validateUpdateUser 
+} from '../validators/users.js';
 
 const router = Router();
 
@@ -15,7 +18,7 @@ const router = Router();
 router.get('/', getUsers);
 router.get('/:id', getUsersById);
 router.post('/', validateCreateUser, createUser);
-router.put('/:id', updateUser);
+router.put('/:id', validateUpdateUser, updateUser);
 router.delete('/:id', deleteUser);
 
 export default router;

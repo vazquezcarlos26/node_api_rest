@@ -1,7 +1,6 @@
 import { getConnection } from "../database/connection.js";
 import sql from "mssql";
 
-
 ///Obtener todos los usuarios
 export const getUsers = async (req, res) => {
     try {
@@ -15,49 +14,62 @@ export const getUsers = async (req, res) => {
                 message: "Error de conexión con la base de datos" 
             });
         }
-
         //Consulta query hacia la base de datos para obtener todos los usuarios
         // Solo obtenemos los campos necesarios para evitar exponer información sensible
-        const result = await pool.request().query("SELECT id, name, surnames, email FROM users");
+        const result = await pool
+            .request()
+            .query("SELECT id, name, surnames, email FROM users");
 
         // Respuaesta con formato JSON, incluyendo un mensaje de éxito y los datos obtenidos
-        return res.json({
+        return res.status(200).json({
             status: true,
             message: "Usuarios obtenidos con éxito",
             data: result.recordset
         });
     } catch (error) {
-        console.error("Error al obtener los usuarios", error);
-
+        // console.error("Error al obtener los usuarios", error);
         return res.status(500).json({ 
             status: false,
-            message: "Error al obtener los usuarios" 
+            message: "Error al obtener los usuarios", 
+            error: error.message
         });
     }
 
 }
 
 export const getUsersById = async (req, res) => {
-    ///Agregamos la conexion a la base de datos
-    const pool = await getConnection();
+    try {
+        ///Agregamos la conexion a la base de datos
+        const pool = await getConnection();
 
-    //Consulta query hacia la base de datos para obtener un usuario en espoecifico
-    const result = await pool
-        .request()
-        .input("id", sql.Int, req.params.id)
-        .query("SELECT * FROM users WHERE id = @id");
+        //Consulta query hacia la base de datos para obtener un usuario en espoecifico
+        const result = await pool
+            .request()
+            .input("id", sql.Int, req.params.id)
+            .query("SELECT * FROM users WHERE id = @id");
 
-    if(result.rowsAffected[0] === 0){
-        return res.status(404).json({message: "Usuario no encontrado"});
+            //Validamos si el usuario existe en la DB
+        if(result.rowsAffected[0] === 0){
+            return res.status(404).json({message: "Usuario no encontrado"});
+        }
+
+        return res.status(200).json({
+            status: true,
+            message: "Usuario obtenido con éxito",
+            data: result.recordset[0]
+        });
+    } catch (error) {
+        // console.error("Error al obtener el usuario", error);
+        return res.status(500).json({ 
+            status: false,
+            message: "Error al obtener el usuario", 
+            error: error.message
+        });
     }
-
-    console.log(result);
-
-    res.json(result.recordset[0]);
+  
 }
  
 export const createUser = async (req, res) => {
-
     ///Extraemos los datos del cuerpo de la solicitud
     const { name, surnames, email } = req.body;
 
@@ -84,55 +96,82 @@ export const createUser = async (req, res) => {
             },
         });
     } catch (error) {
-        console.error("Error al crear el usuario", error);
+        // console.error("Error al crear el usuario", error);
         return res.status(500).json({ 
             status: false,
-            message: "Error al crear el usuario" 
+            message: "Error al crear el usuario", 
+            error: error.message
         });
     }
-
 }
 
 export const updateUser = async (req, res) => {
-    ///Agregamos la conexion a la base de datos
-    const pool = await getConnection();
 
-    //Consulta query hacia la base de datos para obtener un usuario en espoecifico
-    const result = await pool
-        .request()
-        .input("id", sql.Int, req.params.id)
-        .input("name", sql.VarChar, req.body.name)
-        .input("surnames", sql.VarChar, req.body.surnames)
-        .input("email", sql.VarChar, req.body.email)
-        .query("UPDATE users SET name = @name, surnames = @surnames, email = @email WHERE id = @id");
+    //Extraemos los datos del cuerpo de la solicitud
+    const { name, surnames, email } = req.body;
 
-    console.log(result);
+    try {
+        ///Agregamos la conexion a la base de datos
+        const pool = await getConnection();
 
-    if(result.rowsAffected[0] === 0){
-        return res.status(404).json({message: "Usuario no encontrado"});
+        //Consulta query hacia la base de datos para obtener un usuario en espoecifico
+        const result = await pool
+            .request()
+            .input("id", sql.Int, req.params.id)
+            .input("name", sql.VarChar, req.body.name)
+            .input("surnames", sql.VarChar, req.body.surnames)
+            .query("UPDATE users SET name = @name, surnames = @surnames WHERE id = @id");
+
+        //Validamos si el usuario existe en la DB
+        if(result.rowsAffected[0] === 0){
+            return res.status(404).json({message: "Usuario no encontrado"});
+        }
+
+        return res.status(201).json({
+            status: true,
+            message: "Usuario actualiazado correctamente",
+            data: {
+                id: req.params.id,
+                name,
+                surnames
+            },
+        });
+    } catch (error) {
+        // console.error("Error al actualizar el usuario", error);
+        return res.status(500).json({ 
+            status: false,
+            message: "Error al actualizar el usuario", 
+            error: error.message
+        });
     }
-
-    res.json({
-        id: req.params.id,
-        name: req.body.name,
-        surnames: req.body.surnames,
-        email: req.body.email
-    });
+   
 }
 
 export const deleteUser = async (req, res) => {
-    ///Agregamos la conexion a la base de datos
-    const pool = await getConnection();
+    try {
+        ///Agregamos la conexion a la base de datos
+        const pool = await getConnection();
 
-    //Consulta query hacia la base de datos para obtener un usuario en espoecifico
-    const result = await pool
-        .request()
-        .input("id", sql.Int, req.params.id)
-        .query("DELETE FROM users WHERE id = @id");
+        //Consulta query hacia la base de datos para obtener un usuario en espoecifico
+        const result = await pool
+            .request()
+            .input("id", sql.Int, req.params.id)
+            .query("DELETE FROM users WHERE id = @id");
 
-    if(result.rowsAffected[0] === 0){
-        return res.status(404).json({message: "Usuario no encontrado"});    
-    };
-    res.json({message: "Usuario eliminado correctamente"});
+        if(result.rowsAffected[0] === 0){
+            return res.status(404).json({message: "Usuario no encontrado"});    
+        };
+        
+        return res.status(200).json({
+            status: true,
+            message: "Usuario eliminado correctamente"
+        });
+    } catch (error) {
+        return res.status(500).json({ 
+            status: false,
+            message: "Error al eliminar el usuario", 
+            error: error.message
+        });
+    }
 }
  
