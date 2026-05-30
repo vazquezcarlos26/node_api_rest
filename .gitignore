@@ -1,0 +1,29 @@
+# Dependencias y caché de pnpm
+/node_modules
+.pnpm-store
+
+# Carpetas de compilación (ajusta según tu framework)
+dist
+build
+.next
+.nuxt
+
+
+# Variables de entorno y secretos
+.env
+.env.local
+.env.*.local
+*.pem
+
+# Archivos del sistema operativo y editores
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Temporales de herramientas de desarrollo
+.eslintcache
+.turbo
+
+# Carpeta database (si no quieres subirla al repositorio)
+/src/database/
